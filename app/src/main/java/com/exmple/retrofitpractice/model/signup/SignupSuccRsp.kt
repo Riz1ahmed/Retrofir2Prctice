@@ -1,5 +1,6 @@
-package com.exmple.retrofitpractice.model
+package com.exmple.retrofitpractice.model.signup
 
+import com.exmple.retrofitpractice.model.UserInfo
 import com.google.gson.annotations.SerializedName
 
 data class SignupSuccRsp(

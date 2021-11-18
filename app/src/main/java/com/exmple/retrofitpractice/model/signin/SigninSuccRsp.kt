@@ -1,14 +1,12 @@
-package com.exmple.retrofitpractice.model
+package com.exmple.retrofitpractice.model.signin
 
+import com.exmple.retrofitpractice.model.UserInfo
 import com.google.gson.annotations.SerializedName
 
-data class SignupErrResp(
-    //Error
-    @SerializedName("non_field_errors") val nonFieldErrors: List<String>?,
-    //Some blank input
-    @SerializedName("full_name") var fullNameError: List<String>?,
-    @SerializedName("phone_number") var phoneNumberError: List<String>?,
-    @SerializedName("password") var passwordError: List<String>?
+data class SigninSuccRsp(
+    //Registered
+    @SerializedName("token") var token: String?,
+    @SerializedName("user_info") var userInfo: UserInfo?,
 )
 
 /**
