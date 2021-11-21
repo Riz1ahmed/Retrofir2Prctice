@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import com.exmple.retrofitpractice.NoInternetException
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -16,8 +17,8 @@ class NetworkInterceptor constructor(private val context: Context) : Interceptor
 
     override fun intercept(chain: Interceptor.Chain): Response {
         if(!isInternetAvailable()){
-            //throw NoInternetException("Can't Connect! Check your internet connection and retry.")
-            throw Exception("Can't Connect! Check your internet connection and retry.")
+            throw NoInternetException("Can't Connect! Check your internet connection and retry.")
+            //throw Exception("Can't Connect! Check your internet connection and retry.")
         }
         return chain.proceed(chain.request())
     }

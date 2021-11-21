@@ -1,9 +1,8 @@
-package com.liilab.moneymaker.data.retrofit
+package com.exmple.retrofitpractice
 
 import android.content.Context
-import com.exmple.retrofitpractice.BuildConfig
+import android.util.Log
 import com.exmple.retrofitpractice.model.SignedData.token
-import com.exmple.retrofitpractice.model.SignedData.tokenType
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -19,6 +18,7 @@ class AuthInterceptor constructor(private val context: Context) : Interceptor {
         /*val token = sharedPref.getToken()
         val tokenType = sharedPref.getTokenType()*/
 
+        Log.d("TAG", "intercept: token: $token")
         if (!token.isNullOrEmpty()) requestBuilder.addHeader(AUTHORIZATION, "$tokenType $token")
 
         requestBuilder.addHeader(Package_Name, context.packageName)
@@ -31,5 +31,6 @@ class AuthInterceptor constructor(private val context: Context) : Interceptor {
         private const val AUTHORIZATION = "Authorization"
         private const val Package_Name = "Package-Name"
         private const val Apk_Version = "Apk-Version"
+        private const val tokenType = "token"
     }
 }

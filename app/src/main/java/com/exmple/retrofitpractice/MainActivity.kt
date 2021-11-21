@@ -5,25 +5,21 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.liveData
 import com.exmple.retrofitpractice.databinding.ActivityMainBinding
-import com.exmple.retrofitpractice.model.server.ServerResponse
+import com.exmple.retrofitpractice.model.SignedData.token
+import com.exmple.retrofitpractice.model.product.ProductData
+import com.exmple.retrofitpractice.model.shop.ShopData
 import com.exmple.retrofitpractice.model.signin.SignInUser
-import com.exmple.retrofitpractice.model.signin.SigninErrResp
 import com.exmple.retrofitpractice.model.signin.SigninSuccRsp
-import com.exmple.retrofitpractice.model.signup.SignupErrResp
-import com.exmple.retrofitpractice.model.signup.SignupSuccRsp
 import com.exmple.retrofitpractice.model.signup.SignupUser
 import com.exmple.retrofitpractice.network.ApiInterface
 import com.exmple.retrofitpractice.network.RetrofitApiClient
-import com.liilab.moneymaker.data.retrofit.AuthInterceptor
-import com.liilab.moneymaker.data.retrofit.NetworkInterceptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.withContext
+import java.io.IOException
 
 
 class MainActivity : AppCompatActivity() {
@@ -31,26 +27,23 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MainViewModel
 
-    private val apiInterface: ApiInterface =
-        RetrofitApiClient.getClient().create(ApiInterface::class.java)
+    private val apiInterface: ApiInterface = RetrofitApiClient.getApiInterface(this)
+    //RetrofitApiClient.getClient().create(ApiInterface::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         //showMyIp()
 
         Handler(Looper.getMainLooper()).postDelayed({
             //signUpReq()
             signInReq()
-
-            usingCoroutine()
-        }, 3000)
+        }, 2000)
     }
 
-    private fun signUpReq() {
+    /*private fun signUpReq() {
         Log.d("TAG", "signInReq: Sign Up")
         apiInterface.signupUser(
             SignupUser(fullName = "Rizwan Ahmed", password = "123456", phoneNo = "0175384108")
@@ -60,10 +53,11 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (succRsp.isSuccessful) {
                     val serverResponse = succRsp.body()
+                    Log.d("TAG", "onResponse signin Token: ${serverResponse?.token}")
                     Log.d("TAG", "onResponse userInfo: ${serverResponse?.userInfo}")
                 } else {
-                    /*val errorResponse = Gson().fromJson<SignupErrorResponse>(errorJson,
-                        object : TypeToken<SignupErrorResponse>() {}.type)*/
+                    *//*val errorResponse = Gson().fromJson<SignupErrorResponse>(errorJson,
+                        object : TypeToken<SignupErrorResponse>() {}.type)*//*
                     val errorJson = succRsp.errorBody()!!.charStream().readText()
                     val er = GSonUtils.fromJson<SignupErrResp>(errorJson)
                     Log.d("TAG", "onResponse error: ${er}")
@@ -74,11 +68,56 @@ class MainActivity : AppCompatActivity() {
                 Log.d("TAG", "onResponse failed: ${t.message}")
             }
         })
+    }*/
+
+    private fun signUpUser() {
+        Log.d("TAG", "signUpReq: Sign In")
+        CoroutineScope(IO).launch {
+            try {
+                apiInterface.signupUser(
+                    SignupUser(
+                        fullName = "Rizwan Ahmed",
+                        password = "123456",
+                        phoneNo = "0175384108"
+                    )
+                ).let {
+                    withContext(Main) {
+                        if (it.isSuccessful) {
+                            Log.d(TAG, "signUpReq: Success")
+                        } else {
+                            Log.d(TAG, "signUpReq: failed code:${it.code()}")
+                        }
+                    }
+                }
+            } catch (e: IOException) {
+                Log.d(TAG, "signUpReq Error: ${e.message}")
+            }
+        }
     }
 
     private fun signInReq() {
         Log.d("TAG", "signInReq: Sign In")
-        apiInterface.signInUser(
+        CoroutineScope(IO).launch {
+            try {
+                apiInterface.signInUser(
+                    SignInUser(password = "123456", userName = "01775384108")
+                ).let {
+                    withContext(Main) {
+                        Log.d(TAG, "signInReq: Response code: ${it.code()}")
+                        if (it.isSuccessful) {
+                            userSignedSuccessful(it.body()!!)
+                            Log.d(TAG, "signInReq: Success")
+                        } else {
+                            Log.d(TAG, "signInReq: failed")
+                        }
+                    }
+                }
+            } catch (e: IOException) {
+                Log.d(TAG, "signInReq: ${e.message}")
+            }
+        }
+
+        /*apiInterface.signInUser(
             SignInUser(password = "123456", userName = "0175384108")
         ).enqueue(object : Callback<SigninSuccRsp> {
             override fun onResponse(
@@ -86,10 +125,14 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (succRsp.isSuccessful) {
                     val serverResponse = succRsp.body()
+                    Log.d("TAG", "onResponse userInfo token: ${serverResponse?.token}")
+                    token = serverResponse?.token
                     Log.d("TAG", "onResponse userInfo: ${serverResponse?.userInfo}")
+
+                    createShop()
                 } else {
-                    /*val errorResponse = Gson().fromJson<SignupErrorResponse>(errorJson,
-                        object : TypeToken<SignupErrorResponse>() {}.type)*/
+                    *//*val errorResponse = Gson().fromJson<SignupErrorResponse>(errorJson,
+                        object : TypeToken<SignupErrorResponse>() {}.type)*//*
                     val errorJson = succRsp.errorBody()!!.charStream().readText()
                     val er = GSonUtils.fromJson<SigninErrResp>(errorJson)
                     Log.d("TAG", "onResponse error: ${er}")
@@ -99,28 +142,84 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call<SigninSuccRsp>, t: Throwable) {
                 Log.d("TAG", "onResponse failed: ${t.message}")
             }
-        })
+        })*/
     }
 
-    private fun usingCoroutine() {
+    private fun userSignedSuccessful(signedRsp: SigninSuccRsp) {
+        token = signedRsp.token
+        Log.d(TAG, "signInSuccess: token: $token")
+        //createShop()
+        createProduct()
+    }
 
+    fun createShop() {
         CoroutineScope(IO).launch {
-            val apiInterfaceCr = RetrofitApiClient.getApiInterface(this@MainActivity)
-
-
-            apiInterfaceCr.signInUser(SignInUser(password = "123456", userName = "0175384108"))
-                .let { call ->
-                    Log.d("TAG", "usingCoroutine: ${call.}")
-                    call.isCanceled
+            RetrofitApiClient.getApiInterface(this@MainActivity)
+                .createShop(ShopData("Liilab supershop", "tarango", 0f)).let { rsp ->
+                    if (rsp.isSuccessful) {
+                        Log.d(TAG, "createShop: shop Created")
+                    } else {
+                        Log.d(TAG, "createShop: shop Created failed")
+                    }
                 }
+        }
+        /*RetrofitApiClient.getApiInterface(this).createShop(ShopData("abc", "tarango", 0f))
+            .enqueue(object : Callback<ShopCreateSuccResp> {
+                override fun onResponse(
+                    call: Call<ShopCreateSuccResp>, response: Response<ShopCreateSuccResp>
+                ) {
+                    if (response.isSuccessful) {
+                        val x=response.body()
+                        Log.d(TAG, "onResponse: Shop created: $x")
+                    } else {
+                        Log.d(TAG, "onResponse: Shop created failed")
+
+                        *//*val er = response.errorBody()
+                        Log.d(TAG, "onResponse: Error: $er")*//*
+
+                        val errorJson = response.errorBody()!!.charStream().readText()
+                        //val er = Gson().fromJson(errorJson, ShopCreateErrResp::class.java)
+                        val er = GSonUtils.fromJson<ShopCreateErrResp>(errorJson)
+                        Log.d("TAG", "onResponse error: ${er}")
+                    }
+                }
+
+                override fun onFailure(call: Call<ShopCreateSuccResp>, t: Throwable) {
+                    Log.d(TAG, "onFailure: connection failed")
+                }
+
+            })*/
+    }
+
+    private fun createProduct() {
+        CoroutineScope(IO).launch {
+            RetrofitApiClient.getApiInterface(this@MainActivity)
+                .createProduct(
+                ProductData(
+                    sku = "123456789",
+                    brand = "RFL",
+                    title = "Waterpot",
+                    measurement = "100",
+                    tags = "a b c d",
+                    //isManualBarcode = true,
+                    note = "this sample note",
+                    unit = 1,
+                    shop = 1,
+                    images = listOf(1)
+                )
+            ).let {
+                Log.d(TAG, "createProduct: Response code: ${it.code()}")
+            }
         }
     }
 
-    fun createShop()= liveData(IO) {
-
+    private fun createStock(){
+        CoroutineScope(IO).launch {
+            RetrofitApiClient.getApiInterface(this@MainActivity).addPurchase()
+        }
     }
 
-    private fun showMyIp() {
+    /*private fun showMyIp() {
         Log.d("TAG", "showMyIp: Calling to API")
 
         apiInterface.getMyIp()?.enqueue(object : Callback<ServerResponse?> {
@@ -146,5 +245,9 @@ class MainActivity : AppCompatActivity() {
                 binding.textview.text = "onResponse: Failed=${t.message}"
             }
         })
+    }*/
+
+    companion object {
+        const val TAG = "tag"
     }
 }
