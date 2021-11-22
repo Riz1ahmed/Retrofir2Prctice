@@ -1,5 +1,7 @@
 package com.exmple.retrofitpractice.network
 
+import com.exmple.retrofitpractice.model.attribute.AttributeListData
+import com.exmple.retrofitpractice.model.attribute.AttributeResponse
 import com.exmple.retrofitpractice.model.product.ProductCreateSuccRsp
 import com.exmple.retrofitpractice.model.product.ProductData
 import com.exmple.retrofitpractice.model.server.ServerResponse
@@ -9,6 +11,9 @@ import com.exmple.retrofitpractice.model.signin.SignInUser
 import com.exmple.retrofitpractice.model.signin.SigninSuccRsp
 import com.exmple.retrofitpractice.model.signup.SignupSuccRsp
 import com.exmple.retrofitpractice.model.signup.SignupUser
+import com.exmple.retrofitpractice.model.stock.PurchaseData
+import com.exmple.retrofitpractice.model.stock.StockData
+import com.exmple.retrofitpractice.model.variation.VariationList
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -31,7 +36,15 @@ interface ApiInterface {
     @POST("/api/inventory/v1/products/")
     suspend fun createProduct(@Body productData: ProductData): Response<ProductCreateSuccRsp>
 
-    @POST("/api/inventory/v1/products/")
-    suspend fun createStock(@Body productData: ProductData): Response<ProductCreateSuccRsp>
+    @POST("/api/inventory/v1/purchases/")
+    suspend fun addPurchase(@Body purchaseData: PurchaseData): Response<StockData>
+
+    @POST("/api/inventory/v1/attributes/")
+    suspend fun addAttribute(@Body attributeListData: AttributeListData): Response<AttributeResponse>
+
+    @POST("/api/inventory/v1/attributes/")
+    suspend fun addVariation(@Body variationList: VariationList): Response<AttributeResponse>
+
+
 }
 

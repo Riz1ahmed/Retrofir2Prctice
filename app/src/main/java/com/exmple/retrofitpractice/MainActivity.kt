@@ -7,13 +7,17 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.exmple.retrofitpractice.databinding.ActivityMainBinding
 import com.exmple.retrofitpractice.model.SignedData.token
+import com.exmple.retrofitpractice.model.attribute.AttributeData
+import com.exmple.retrofitpractice.model.attribute.AttributeListData
 import com.exmple.retrofitpractice.model.product.ProductData
 import com.exmple.retrofitpractice.model.shop.ShopData
 import com.exmple.retrofitpractice.model.signin.SignInUser
 import com.exmple.retrofitpractice.model.signin.SigninSuccRsp
 import com.exmple.retrofitpractice.model.signup.SignupUser
+import com.exmple.retrofitpractice.model.variation.VariationList
 import com.exmple.retrofitpractice.network.ApiInterface
 import com.exmple.retrofitpractice.network.RetrofitApiClient
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -149,19 +153,19 @@ class MainActivity : AppCompatActivity() {
         token = signedRsp.token
         Log.d(TAG, "signInSuccess: token: $token")
         //createShop()
-        createProduct()
+        //createProduct()
+        addAttribute()
     }
 
     fun createShop() {
         CoroutineScope(IO).launch {
-            RetrofitApiClient.getApiInterface(this@MainActivity)
-                .createShop(ShopData("Liilab supershop", "tarango", 0f)).let { rsp ->
-                    if (rsp.isSuccessful) {
-                        Log.d(TAG, "createShop: shop Created")
-                    } else {
-                        Log.d(TAG, "createShop: shop Created failed")
-                    }
+            apiInterface.createShop(ShopData("Liilab supershop", "tarango", 0f)).let { rsp ->
+                if (rsp.isSuccessful) {
+                    Log.d(TAG, "createShop: shop Created")
+                } else {
+                    Log.d(TAG, "createShop: shop Created failed")
                 }
+            }
         }
         /*RetrofitApiClient.getApiInterface(this).createShop(ShopData("abc", "tarango", 0f))
             .enqueue(object : Callback<ShopCreateSuccResp> {
@@ -193,12 +197,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun createProduct() {
         CoroutineScope(IO).launch {
-            RetrofitApiClient.getApiInterface(this@MainActivity)
-                .createProduct(
+            apiInterface.createProduct(
                 ProductData(
-                    sku = "123456789",
+                    sku = "123456786",
                     brand = "RFL",
-                    title = "Waterpot",
+                    title = "Box",
                     measurement = "100",
                     tags = "a b c d",
                     //isManualBarcode = true,
@@ -213,9 +216,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun createStock(){
+    private fun addAttribute() {
         CoroutineScope(IO).launch {
-            RetrofitApiClient.getApiInterface(this@MainActivity).addPurchase()
+            apiInterface.addAttribute(
+                AttributeListData(
+                    listOf(
+                        AttributeData(
+                            product = 1,
+                            title = "Flavour",
+                            values = "Orange|Banana|Pineapple",
+                            sortWeight = 1
+                        ),
+                        AttributeData(
+                            product = 2,
+                            title = "Color",
+                            values = "reg|green|blue|orange|pink",
+                            sortWeight = 2
+                        ),
+                    )
+                )
+            ).let { response ->
+                Log.d(TAG, "addAttribute: RespCode: ${response.code()}")
+                if (response.isSuccessful) {
+                    Log.d(TAG, "createStock: Attribute created: ${response.body()!!.message}")
+                } else {
+                    Log.d(TAG, "createStock: Attribute failed || ${Gson().toJson(response.body())}")
+                }
+            }
+        }
+    }
+
+    private fun addVariation() {
+        CoroutineScope(IO).launch {
+            apiInterface.addVariation(
+                VariationList(
+                    listOf(
+                        //AttributeData(product =, title =, values =, sortWeight =)
+                    )
+                )
+            ).let {
+
+            }
         }
     }
 
