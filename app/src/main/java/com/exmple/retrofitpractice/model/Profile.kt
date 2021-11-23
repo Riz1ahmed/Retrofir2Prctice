@@ -6,6 +6,7 @@ data class Profile(
     @SerializedName("id") val id: Long,
     @SerializedName("created_date") val createdDate: String,
     @SerializedName("modified_date") val modifiedDate: String,
+
     @SerializedName("full_name") val fullName: String,
     @SerializedName("phone_number") val phoneNumber: String,
     @SerializedName("dob") val dateOfBirth: String?,

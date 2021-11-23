@@ -9,11 +9,13 @@ import com.exmple.retrofitpractice.databinding.ActivityMainBinding
 import com.exmple.retrofitpractice.model.SignedData.token
 import com.exmple.retrofitpractice.model.attribute.AttributeData
 import com.exmple.retrofitpractice.model.attribute.AttributeListData
+import com.exmple.retrofitpractice.model.order.Sale
 import com.exmple.retrofitpractice.model.product.ProductData
 import com.exmple.retrofitpractice.model.shop.ShopData
 import com.exmple.retrofitpractice.model.signin.SignInUser
 import com.exmple.retrofitpractice.model.signin.SigninSuccRsp
 import com.exmple.retrofitpractice.model.signup.SignupUser
+import com.exmple.retrofitpractice.model.stock.PurchaseData
 import com.exmple.retrofitpractice.model.variation.VariationList
 import com.exmple.retrofitpractice.network.ApiInterface
 import com.exmple.retrofitpractice.network.RetrofitApiClient
@@ -45,6 +47,16 @@ class MainActivity : AppCompatActivity() {
             //signUpReq()
             signInReq()
         }, 2000)
+    }
+
+    private fun userSignedSuccessful(signedRsp: SigninSuccRsp) {
+        token = signedRsp.token
+        Log.d(TAG, "signInSuccess: token: $token")
+        //createShop()
+        //createProduct()
+        //addAttribute()
+        //addPurchase()
+        getAnOrder()
     }
 
     /*private fun signUpReq() {
@@ -149,19 +161,12 @@ class MainActivity : AppCompatActivity() {
         })*/
     }
 
-    private fun userSignedSuccessful(signedRsp: SigninSuccRsp) {
-        token = signedRsp.token
-        Log.d(TAG, "signInSuccess: token: $token")
-        //createShop()
-        //createProduct()
-        addAttribute()
-    }
-
+    //Success
     fun createShop() {
         CoroutineScope(IO).launch {
             apiInterface.createShop(ShopData("Liilab supershop", "tarango", 0f)).let { rsp ->
                 if (rsp.isSuccessful) {
-                    Log.d(TAG, "createShop: shop Created")
+                    Log.d(TAG, "createShop: shop Created: ${rsp.body()}")
                 } else {
                     Log.d(TAG, "createShop: shop Created failed")
                 }
@@ -256,6 +261,53 @@ class MainActivity : AppCompatActivity() {
                 )
             ).let {
 
+            }
+        }
+    }
+
+    private fun addPurchase() {
+        CoroutineScope(IO).launch {
+            RetrofitApiClient.getApiInterface(this@MainActivity).addPurchase(
+                PurchaseData(
+                    buyingPrice = 0f,
+                    expDate = null,
+                    mfgDate = null,
+                    quantity = 10,
+                    dealerName = null,
+                    dealerContact = null,
+                    variation = 1,
+                    conductor = 1
+                )
+            ).let {
+                Log.d(TAG, "addPurchase: code: ${it.code()}")
+                if (it.isSuccessful) {
+                    Log.d(TAG, "addPurchase: Purchase add success")
+                } else {
+                    Log.d(TAG, "addPurchase: Purchase add failed")
+                }
+            }
+        }
+    }
+
+    private fun getAnOrder() {
+        CoroutineScope(IO).launch {
+            RetrofitApiClient.getApiInterface(this@MainActivity).createOrder(
+                Sale(
+                    customerId = "007",
+                    seller = 1,
+                    saleItems = arrayListOf(),
+                    discount = 0f,
+                    paymentMethod = "bKash",
+                    due = 0
+                )
+            ).let {
+                Log.d(TAG, "getAnOrder: code: ${it.code()}")
+                if (it.isSuccessful) {
+                    Log.d(TAG, "getAnOrder: Invoice created success")
+                    Log.d(TAG, "getAnOrder: Invoice: ${it.body()}")
+                } else {
+                    Log.d(TAG, "getAnOrder: Invoice created failed")
+                }
             }
         }
     }

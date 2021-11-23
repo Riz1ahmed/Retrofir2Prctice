@@ -13,7 +13,13 @@ data class ProductData(
     @SerializedName("note") val note: String?,
     @SerializedName("unit") var unit: Int,  //unitType
     @SerializedName("shop") val shop: Int,
-    @SerializedName("images") val images: List<Int>
+    @SerializedName("images") val images: List<Int>,
+
+
+    //Extra response data from server
+    @SerializedName("id") val id: Int? = null,
+    @SerializedName("modified_date") private val modifiedDate: String? = null,
+    @SerializedName("created_date") private val createdDate: String? = null,
 )
 
 /*

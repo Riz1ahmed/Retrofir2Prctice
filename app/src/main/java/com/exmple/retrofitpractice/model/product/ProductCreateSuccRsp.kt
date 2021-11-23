@@ -4,8 +4,8 @@ import com.google.gson.annotations.SerializedName
 
 data class ProductCreateSuccRsp(
     @SerializedName("id") val id: Int,
-    @SerializedName("created_date") val created_date: String,
-    @SerializedName("modified_date") val modified_date: String,
+    @SerializedName("created_date") val createdDate: String,
+    @SerializedName("modified_date") val modifiedDate: String,
     @SerializedName("sku") var sku: String,
     @SerializedName("brand") var brand: String,
     @SerializedName("title") var title: String,
